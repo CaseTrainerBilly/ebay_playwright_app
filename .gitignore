@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+
+venv/
+.venv/
+
+ebay_browser_profile/
+debug_playwright_response.html
+
+.DS_Store

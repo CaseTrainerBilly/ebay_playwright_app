@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eBay Sold Items Research</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="hero-bar">
+            <div>
+                <div class="eyebrow">Sold Listing Research</div>
+                <h1>eBay Sold Items Research</h1>
+                <p class="muted">Search recent sold listings, compare market pricing, and export a Numbers-friendly spreadsheet with embedded images.</p>
+            </div>
+            <div class="ebay-mark">
+                <span class="mark-e">e</span><span class="mark-b">b</span><span class="mark-a">a</span><span class="mark-y">y</span>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="post" action="/search" class="search-form">
+            <input type="text" name="query" placeholder="Example: pokemon black ds cartridge only" required value="{{ query or '' }}">
+            <select name="domain">
+                <option value="www.ebay.co.uk" {% if domain == 'www.ebay.co.uk' %}selected{% endif %}>eBay UK</option>
+                <option value="www.ebay.com" {% if domain == 'www.ebay.com' %}selected{% endif %}>eBay US</option>
+            </select>
+            <input type="number" name="limit" min="1" max="50" value="{{ limit or 40 }}" required>
+            <button type="submit">Search Sold Listings</button>
+        </form>
+
+        {% if results %}
+            <div class="stats">
+                <div class="stat-card"><strong>Query</strong><br>{{ results["query"] }}</div>
+                <div class="stat-card"><strong>Items Found</strong><br>{{ results["count"] }}</div>
+                <div class="stat-card"><strong>Average Price</strong><br>{{ results["average_price"] if results["average_price"] is not none else 'N/A' }}</div>
+                <div class="stat-card"><strong>Lowest Price</strong><br>{{ results["lowest_price"] if results["lowest_price"] is not none else 'N/A' }}</div>
+                <div class="stat-card"><strong>Highest Price</strong><br>{{ results["highest_price"] if results["highest_price"] is not none else 'N/A' }}</div>
+            </div>
+
+            {% if results["debug"] %}
+                <div class="debug-box">
+                    <strong>Debug</strong><br>
+                    Final URL: {{ results["debug"]["final_url"] }}<br>
+                    Page title: {{ results["debug"]["page_title"] }}<br>
+                    Cards found: {{ results["debug"]["cards_found"] }}<br>
+                    Items after filtering: {{ results["debug"]["items_after_filtering"] }}
+                </div>
+            {% endif %}
+
+            <div class="actions">
+                <a class="link-btn" href="/export-xlsx?token={{ results_token }}">Export Spreadsheet</a>
+            </div>
+            <div class="debug-box">
+                <strong>Spreadsheet Export Assumptions</strong><br>
+                For eBay UK private sellers, sold price is treated as the buyer-facing total.<br>
+                Estimated UK Buyer Protection is backed out to calculate what the seller likely receives.<br>
+                Recommended max buy price uses median estimated sale price, 1.00 total costs, a tiered target profit, and a 55% buy cap.<br>
+                Non-UK fallback fee estimate: 13% + 0.30<br>
+                Export uses the current results on screen and does not rerun the scraper.<br>
+                The spreadsheet now embeds supported images directly instead of relying on a spreadsheet formula.
+            </div>
+
+            {% if results["items"]|length == 0 %}
+                <div class="empty-state">No sold items were extracted for this search.</div>
+            {% else %}
+                <div class="items">
+                    {% for item in results["items"] %}
+                        <div class="item">
+                            <div class="item-media">
+                                {% if item["image_url"] %}
+                                    <img src="{{ item['image_url'] }}" alt="{{ item['title'] }}">
+                                {% else %}
+                                    <div class="img-placeholder">No image</div>
+                                {% endif %}
+                            </div>
+                            <div class="item-content">
+                                <div class="item-topline">
+                                    <span class="item-index">Result {{ loop.index }}</span>
+                                    <span class="item-price">{{ item["price_text"] }}</span>
+                                </div>
+                                <h3>{{ item["title"] }}</h3>
+                                <div class="listing-strip">
+                                    <span class="listing-pill">Sold Listing</span>
+                                    <span class="listing-pill listing-pill-soft">{{ item["marketplace"] }}</span>
+                                    <span class="listing-pill listing-pill-soft">{{ item["sold_date"] or 'Date unavailable' }}</span>
+                                </div>
+                                <div class="item-meta-grid">
+                                    <div class="meta-chip">
+                                        <span class="meta-label">Condition</span>
+                                        <span class="meta-value">{{ item["condition"] or 'N/A' }}</span>
+                                    </div>
+                                    <div class="meta-chip">
+                                        <span class="meta-label">Sold Date</span>
+                                        <span class="meta-value">{{ item["sold_date"] or 'N/A' }}</span>
+                                    </div>
+                                    <div class="meta-chip">
+                                        <span class="meta-label">Shipping</span>
+                                        <span class="meta-value">{{ item["shipping_text"] or 'N/A' }}</span>
+                                    </div>
+                                    <div class="meta-chip">
+                                        <span class="meta-label">Location</span>
+                                        <span class="meta-value">{{ item["location_text"] or 'UK / not stated' }}</span>
+                                    </div>
+                                    <div class="meta-chip">
+                                        <span class="meta-label">Listing ID</span>
+                                        <span class="meta-value">{{ item["listing_id"] or 'N/A' }}</span>
+                                    </div>
+                                    <div class="meta-chip">
+                                        <span class="meta-label">Marketplace</span>
+                                        <span class="meta-value">{{ item["marketplace"] }}</span>
+                                    </div>
+                                    <div class="meta-chip">
+                                        <span class="meta-label">Numeric Price</span>
+                                        <span class="meta-value">{{ '%.2f'|format(item["price_value"]) }}</span>
+                                    </div>
+                                </div>
+                                <p class="item-description"><strong>Quick summary:</strong> {{ item["description"] or 'No extra summary available.' }}</p>
+                                <div class="item-actions">
+                                    <a class="link-btn secondary-btn" href="/item?token={{ results_token }}&index={{ loop.index0 }}">View Details</a>
+                                    <a class="link-btn" href="{{ item['url'] }}" target="_blank" rel="noopener noreferrer">Open eBay Listing</a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</body>
+</html>

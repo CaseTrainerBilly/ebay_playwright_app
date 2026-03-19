@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Item Detail | eBay Sold Items Research</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="detail-header">
+            <div>
+                <div class="eyebrow">Listing Detail</div>
+                <h1>Item Detail</h1>
+                <p class="muted">A tighter reseller view with sold pricing, payout estimates, and market context kept on one page.</p>
+            </div>
+        </div>
+
+        <div class="actions">
+            <a class="link-btn secondary-btn" href="/">New Search</a>
+            <a class="link-btn secondary-btn" href="/search" onclick="event.preventDefault(); history.back();">Back to Results</a>
+            {% if item %}
+                <a class="link-btn" href="{{ item['url'] }}" target="_blank" rel="noopener noreferrer">Open eBay Listing</a>
+            {% endif %}
+        </div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        {% if item %}
+            <div class="detail-layout">
+                <div class="detail-image-panel">
+                    {% if item["image_url"] %}
+                        <img class="detail-image" src="{{ item['image_url'] }}" alt="{{ item['title'] }}">
+                    {% else %}
+                        <div class="img-placeholder detail-placeholder">No image</div>
+                    {% endif %}
+                </div>
+                <div class="detail-content">
+                    <div class="item-topline">
+                        <span class="item-index">Result {{ index + 1 }}</span>
+                        <span class="item-price">{{ item["price_text"] }}</span>
+                    </div>
+                    <h2>{{ item["title"] }}</h2>
+                    <div class="listing-strip">
+                        <span class="listing-pill">Sold Listing</span>
+                        <span class="listing-pill listing-pill-soft">{{ item["marketplace"] }}</span>
+                        <span class="listing-pill listing-pill-soft">{{ item["sold_date"] or 'Date unavailable' }}</span>
+                    </div>
+                    <p class="item-description"><strong>Search used:</strong> {{ query }}</p>
+
+                    <div class="detail-section">
+                        <div class="section-head">
+                            <h3>Pricing Snapshot</h3>
+                            <p class="muted">Use these numbers to quickly compare what the buyer likely paid against what the seller likely kept.</p>
+                        </div>
+                        <div class="pricing-grid">
+                            <div class="price-card primary-price-card">
+                                <span class="meta-label">Observed Sold Price</span>
+                                <span class="price-value">£{{ '%.2f'|format(item["price_value"]) }}</span>
+                                <span class="supporting-copy">Buyer-facing sold price shown on the listing.</span>
+                            </div>
+                            <div class="price-card">
+                                <span class="meta-label">Estimated Buyer Protection</span>
+                                <span class="price-value subdued">£{{ '%.2f'|format(item_buyer_protection_fee or 0) }}</span>
+                                <span class="supporting-copy">Estimated amount added on top for eligible UK private sales.</span>
+                            </div>
+                            <div class="price-card emphasis-card">
+                                <span class="meta-label">Estimated Seller Receives</span>
+                                <span class="price-value">£{{ '%.2f'|format(item_seller_receives or 0) }}</span>
+                                <span class="supporting-copy">Useful anchor for judging realistic resale value.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail-grid">
+                        <div class="detail-card">
+                            <span class="meta-label">Condition</span>
+                            <span class="meta-value">{{ item["condition"] or 'N/A' }}</span>
+                        </div>
+                        <div class="detail-card">
+                            <span class="meta-label">Sold Date</span>
+                            <span class="meta-value">{{ item["sold_date"] or 'N/A' }}</span>
+                        </div>
+                        <div class="detail-card">
+                            <span class="meta-label">Shipping</span>
+                            <span class="meta-value">{{ item["shipping_text"] or 'N/A' }}</span>
+                        </div>
+                        <div class="detail-card">
+                            <span class="meta-label">Location</span>
+                            <span class="meta-value">{{ item["location_text"] or 'UK / not stated' }}</span>
+                        </div>
+                        <div class="detail-card">
+                            <span class="meta-label">Listing ID</span>
+                            <span class="meta-value">{{ item["listing_id"] or 'N/A' }}</span>
+                        </div>
+                        <div class="detail-card">
+                            <span class="meta-label">Marketplace</span>
+                            <span class="meta-value">{{ item["marketplace"] }}</span>
+                        </div>
+                        <div class="detail-card">
+                            <span class="meta-label">Numeric Price</span>
+                            <span class="meta-value">{{ '%.2f'|format(item["price_value"]) }}</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-two-column">
+                        <div class="detail-notes">
+                            <div class="section-head">
+                                <h3>Market Read</h3>
+                                <p class="muted">These values come from the current sold-result set on screen, not a fresh scrape.</p>
+                            </div>
+                            <div class="market-grid">
+                                <div class="detail-card">
+                                    <span class="meta-label">Median Estimated Sale</span>
+                                    <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("median_estimated_sale_price", 0)) }}</span>
+                                </div>
+                                <div class="detail-card">
+                                    <span class="meta-label">Average Estimated Sale</span>
+                                    <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("average_estimated_sale_price", 0)) }}</span>
+                                </div>
+                                <div class="detail-card">
+                                    <span class="meta-label">Recommended Max Buy</span>
+                                    <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("recommended_max_buy_price", 0)) }}</span>
+                                </div>
+                                <div class="detail-card">
+                                    <span class="meta-label">Expected Profit</span>
+                                    <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("expected_profit_at_max_buy", 0)) }}</span>
+                                </div>
+                                <div class="detail-card">
+                                    <span class="meta-label">ROI At Max Buy</span>
+                                    <span class="meta-value">
+                                        {% if market_metrics.get("roi_at_max_buy") is not none %}
+                                            {{ '%.0f'|format(market_metrics.get("roi_at_max_buy") * 100) }}%
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="detail-card">
+                                    <span class="meta-label">Confidence</span>
+                                    <span class="meta-value">{{ market_metrics.get("sell_through_confidence", 'N/A') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-notes">
+                            <div class="section-head">
+                                <h3>Reseller Notes</h3>
+                                <p class="muted">A compact checklist before buying another copy to flip.</p>
+                            </div>
+                            <p><strong>Summary:</strong> {{ item["description"] or 'No extra summary available.' }}</p>
+                            <p><strong>Check condition match:</strong> Make sure your target buy is as clean as this sold example and includes the same extras or omissions.</p>
+                            <p><strong>Check price realism:</strong> Compare this sale against the market median, not just the top price, before deciding your buy ceiling.</p>
+                            <p><strong>Check source:</strong> Use the listing ID and original link for image or wording verification when needed.</p>
+                            <p><strong>Source URL:</strong> <a href="{{ item['url'] }}" target="_blank" rel="noopener noreferrer">{{ item["url"] }}</a></p>
+                        </div>
+                    </div>
+
+                    <div class="detail-notes source-panel">
+                        <div class="section-head">
+                            <h3>Market Range</h3>
+                            <p class="muted">A quick spread view from the current sold set.</p>
+                        </div>
+                        <div class="market-grid">
+                            <div class="detail-card">
+                                <span class="meta-label">Lowest Estimated Sale</span>
+                                <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("lowest_estimated_sale_price", 0)) }}</span>
+                            </div>
+                            <div class="detail-card">
+                                <span class="meta-label">Highest Estimated Sale</span>
+                                <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("highest_estimated_sale_price", 0)) }}</span>
+                            </div>
+                            <div class="detail-card">
+                                <span class="meta-label">Price Spread</span>
+                                <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("price_spread", 0)) }}</span>
+                            </div>
+                            <div class="detail-card">
+                                <span class="meta-label">Total Cost Assumption</span>
+                                <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("total_costs", 0)) }}</span>
+                            </div>
+                            <div class="detail-card">
+                                <span class="meta-label">Target Profit Rule</span>
+                                <span class="meta-value">£{{ '%.2f'|format(market_metrics.get("target_profit", 0)) }}</span>
+                            </div>
+                            <div class="detail-card">
+                                <span class="meta-label">Buy Cap Ratio</span>
+                                <span class="meta-value">
+                                    {% if market_metrics.get("buy_ratio_cap") is not none %}
+                                        {{ '%.0f'|format(market_metrics.get("buy_ratio_cap") * 100) }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
