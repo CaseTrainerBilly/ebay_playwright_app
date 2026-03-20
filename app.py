@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from flask import Flask, jsonify, render_template, request, send_file
+import os
 import re
 import tempfile
 import uuid
@@ -192,4 +193,6 @@ def item_detail():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    host = os.environ.get("FLASK_HOST", "127.0.0.1")
+    port = int(os.environ.get("PORT", "5001"))
+    app.run(debug=True, host=host, port=port)
