@@ -46,6 +46,22 @@ Open:
 http://127.0.0.1:5000
 ```
 
+## GitHub Pages UI Demo
+
+If you want to show the interface on GitHub Pages, use the static files in `docs/`.
+
+- `docs/index.html` shows the search/results UI with bundled demo data
+- `docs/item.html` shows the item detail page
+- `docs/assets/` contains the stylesheet and small client-side demo script
+
+This is intentionally a visual demo only:
+
+- GitHub Pages cannot run the Flask app
+- Playwright scraping will not work there
+- XLSX export is shown as a disabled UI action
+
+To publish it, set your GitHub Pages source to the `docs/` folder on your default branch.
+
 ## First Run And Challenge Flow
 
 The scraper launches Chromium with:

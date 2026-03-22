@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eBay Sold Items Research Demo</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="hero-bar">
+            <div>
+                <div class="eyebrow">GitHub Pages Demo</div>
+                <h1>eBay Sold Items Research</h1>
+                <p class="muted">A static showcase of the Flask UI for GitHub Pages. Search, export, and scraping actions are visual only in this hosted demo.</p>
+            </div>
+            <div class="ebay-mark">
+                <span class="mark-e">e</span><span class="mark-b">b</span><span class="mark-a">a</span><span class="mark-y">y</span>
+            </div>
+        </div>
+
+        <div class="demo-banner">
+            <strong>Demo mode.</strong> GitHub Pages can show the interface, but it cannot run the Playwright scraper or build the spreadsheet export.
+        </div>
+
+        <form class="search-form" id="demo-search-form">
+            <input type="text" id="query" name="query" placeholder="Example: pokemon black ds cartridge only" value="pokemon black ds cartridge only">
+            <select id="domain" name="domain">
+                <option value="www.ebay.co.uk" selected>eBay UK</option>
+                <option value="www.ebay.com">eBay US</option>
+            </select>
+            <input type="number" id="limit" name="limit" min="1" max="50" value="8" required>
+            <button type="submit">Show Demo Results</button>
+        </form>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="debug-box" id="debug-box"></div>
+
+        <div class="actions">
+            <a class="link-btn disabled-btn" href="#" aria-disabled="true">Export Spreadsheet</a>
+        </div>
+
+        <div class="debug-box">
+            <strong>Spreadsheet Export Assumptions</strong><br>
+            For eBay UK private sellers, sold price is treated as the buyer-facing total.<br>
+            Estimated UK Buyer Protection is backed out to calculate what the seller likely receives.<br>
+            Recommended max buy price uses median estimated sale price, 1.00 total costs, a tiered target profit, and a 55% buy cap.<br>
+            Non-UK fallback fee estimate: 13% + 0.30<br>
+            In this demo, the export button is intentionally disabled because GitHub Pages cannot run the backend export route.
+        </div>
+
+        <div class="items" id="items"></div>
+    </div>
+
+    <script src="assets/demo.js"></script>
+</body>
+</html>
